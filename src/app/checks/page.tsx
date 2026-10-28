@@ -26,7 +26,7 @@ export default function ChecksPage() {
         <Card className="overflow-hidden !p-0">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-left text-sm">
-              <thead style={{ background: "#f1f5f9", color: "var(--l-muted)" }}>
+              <thead style={{ background: "var(--l-line)", color: "var(--l-muted)" }}>
                 <tr>
                   <th className="px-4 py-3 font-semibold">Check</th>
                   <th className="px-4 py-3 font-semibold">Category</th>

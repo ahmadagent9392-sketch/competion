@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { signIn, useHydrated, useUser } from "@/lib/store";
 
 export default function LoginPage() {
@@ -24,8 +25,9 @@ export default function LoginPage() {
   return (
     <div
       className="light-page flex min-h-screen flex-col items-center justify-center px-4"
-      style={{ background: "radial-gradient(900px 480px at 50% -80px, #ccfbf1 0%, rgba(204,251,241,0) 70%), var(--l-bg)" }}
+      style={{ background: "radial-gradient(900px 480px at 50% -80px, var(--glow) 0%, transparent 70%), var(--l-bg)" }}
     >
+      <div className="absolute right-4 top-4" style={{ color: "var(--l-fg)" }}><ThemeToggle surface="light" /></div>
       <Link href="/" className="mb-6 text-xl font-extrabold tracking-tight">
         <span style={{ color: "var(--brand)" }}>◆</span> SitePilot AI
       </Link>
@@ -52,7 +54,7 @@ export default function LoginPage() {
               placeholder="e.g. Ahmad" maxLength={40} autoFocus autoComplete="nickname"
               aria-invalid={error ? true : undefined} aria-describedby={error ? "name-error" : undefined}
               className="mt-2 w-full rounded-lg px-4 py-3 text-base outline-none"
-              style={{ background: "#fff", border: `1px solid ${error ? "#dc2626" : "var(--l-line)"}`, color: "var(--l-fg)" }}
+              style={{ background: "var(--l-bg)", border: `1px solid ${error ? "#dc2626" : "var(--l-line)"}`, color: "var(--l-fg)" }}
             />
             {error && <p id="name-error" role="alert" className="mt-2 text-sm" style={{ color: "#b91c1c" }}>{error}</p>}
             <button type="submit" className="btn btn-primary mt-5 w-full" style={{ padding: "12px 18px", fontSize: 16 }}>Continue</button>

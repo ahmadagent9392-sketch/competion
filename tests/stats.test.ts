@@ -39,3 +39,18 @@ describe("computeStats", () => {
     expect([scoreTone(95), scoreTone(80), scoreTone(79), scoreTone(50), scoreTone(49)]).toEqual(["good", "good", "ok", "ok", "bad"]);
   });
 });
+
+describe("sites and next actions", () => {
+  it("groups scans by site (ignoring protocol, www and trailing slash) with previous score", () => {
+    const s = computeStats([entry("3", "https://www.a.com/", 80), entry("2", "b.com", 40), entry("1", "http://a.com", 60)]);
+    expect(s.sites).toHaveLength(2);
+    const a = s.sites.find((x) => x.key === "a.com")!;
+    expect([a.scans, a.latest, a.previous]).toEqual([2, 80, 60]);
+    expect(s.sites.find((x) => x.key === "b.com")!.previous).toBeNull();
+  });
+  it("orders next actions by severity with approximate point gains", () => {
+    const s = computeStats([entry("1", "a", 50, [["i", "info"], ["c", "critical"], ["w", "warning"]])]);
+    expect(s.nextActions.map((a) => [a.id, a.gain])).toEqual([["c", 7], ["w", 3], ["i", 1]]);
+  });
+  it("no findings means no actions", () => expect(computeStats([entry("1", "a", 100)]).nextActions).toEqual([]));
+});

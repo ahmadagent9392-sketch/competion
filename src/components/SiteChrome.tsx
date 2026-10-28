@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ThemeToggle } from "./ThemeToggle";
 
 const LINKS = [
   { href: "/how-it-works", label: "How it works" },
@@ -8,7 +9,7 @@ const LINKS = [
 
 export function SiteNav() {
   return (
-    <header className="sticky top-0 z-10 backdrop-blur" style={{ background: "rgba(248,250,252,.8)", borderBottom: "1px solid var(--l-line)" }}>
+    <header className="sticky top-0 z-10 backdrop-blur" style={{ background: "color-mix(in srgb, var(--l-bg) 82%, transparent)", borderBottom: "1px solid var(--l-line)", color: "var(--l-fg)" }}>
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
         <Link href="/" className="text-lg font-extrabold tracking-tight">
           <span style={{ color: "var(--brand)" }}>◆</span> SitePilot AI
@@ -19,6 +20,7 @@ export function SiteNav() {
               {l.label}
             </Link>
           ))}
+          <ThemeToggle surface="light" />
           <Link href="/dashboard" className="btn btn-light" style={{ padding: "7px 14px" }}>Dashboard</Link>
           <Link href="/app" className="btn btn-primary" style={{ padding: "7px 14px" }}>Open workspace</Link>
         </nav>
@@ -60,4 +62,4 @@ export function Card({ children, className = "" }: { children: React.ReactNode; 
   );
 }
 
-export const LIGHT_BG = { background: "radial-gradient(1200px 500px at 50% -120px, #ccfbf1 0%, rgba(204,251,241,0) 70%), var(--l-bg)" };
+export const LIGHT_BG = { background: "radial-gradient(1200px 500px at 50% -120px, var(--glow) 0%, transparent 70%), var(--l-bg)" };

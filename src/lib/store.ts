@@ -32,6 +32,7 @@ const HistorySchema = z.array(
         severity: z.enum(["critical", "warning", "info"]),
         category: z.enum(["seo", "content", "accessibility"]),
         title: z.string().max(300),
+        fix: z.string().max(600).optional(),
       }),
     ),
   }),
@@ -103,8 +104,21 @@ export function recordScan(scan: ScanResult) {
     status: scan.status,
     scannedAt: scan.scannedAt,
     scores: scan.scores,
-    findings: scan.findings.map((f) => ({ id: f.id, severity: f.severity, category: f.category, title: f.title })),
+    findings: scan.findings.map((f) => ({ id: f.id, severity: f.severity, category: f.category, title: f.title, fix: f.fix })),
   };
   write(HIST_KEY, JSON.stringify([entry, ...prev].slice(0, MAX_HISTORY)));
 }
 export const clearHistory = () => write(HIST_KEY, "");
+
+const THEME_KEY = "sitepilot:v1:theme";
+export type Theme = "light" | "dark" | "";
+
+/** The explicit choice made by the visitor ("" = none yet: each page keeps its natural look). */
+export function useTheme(): Theme {
+  const raw = useRaw(THEME_KEY);
+  return raw === "light" || raw === "dark" ? raw : "";
+}
+export function setTheme(t: "light" | "dark") {
+  document.documentElement.dataset.theme = t;
+  write(THEME_KEY, t);
+}

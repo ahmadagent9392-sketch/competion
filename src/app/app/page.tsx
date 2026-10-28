@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { recordScan, useUser } from "@/lib/store";
 import type { AcceptedChange, Finding, PlanItem, ScanResult, Severity } from "@/lib/types";
 
@@ -186,6 +187,7 @@ export default function Workspace() {
         <Link href="/" className="text-lg font-extrabold tracking-tight"><span style={{ color: "var(--brand)" }}>◆</span> SitePilot AI</Link>
         <nav className="flex items-center gap-2 text-sm">
           <span className="hidden text-xs sm:inline" style={{ color: "var(--d-muted)" }}>{ai ? (aiReady ? `AI ready · ${ai.model}` : "AI not configured") : "…"}</span>
+          <ThemeToggle surface="dark" />
           <Link href="/dashboard" className="btn btn-ghost" style={{ padding: "6px 12px" }}>Dashboard</Link>
           {!user && <Link href="/login" className="btn btn-primary" style={{ padding: "6px 12px" }}>Sign in</Link>}
           {user && <span className="rounded-full px-3 py-1" style={{ background: "var(--d-panel2)", border: "1px solid var(--d-line)" }}>{user.name}</span>}

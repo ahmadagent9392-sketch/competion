@@ -11,7 +11,7 @@ export default function Landing() {
   return (
     <div
       className="light-page min-h-screen"
-      style={{ background: "radial-gradient(1200px 500px at 50% -120px, #ccfbf1 0%, rgba(204,251,241,0) 70%), var(--l-bg)" }}
+      style={{ background: "radial-gradient(1200px 500px at 50% -120px, var(--glow) 0%, transparent 70%), var(--l-bg)" }}
     >
       <SiteNav />
 
