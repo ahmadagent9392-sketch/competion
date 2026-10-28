@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { recordScan, useUser } from "@/lib/store";
 import type { AcceptedChange, Finding, PlanItem, ScanResult, Severity } from "@/lib/types";
 
 type Field = "title" | "h1" | "meta-description";
@@ -22,7 +23,7 @@ const STATUS: Record<string, { label: string; bg: string; fg: string }> = {
   demo: { label: "DEMO — fictional site", bg: "var(--info-bg)", fg: "var(--info-fg)" },
 };
 
-interface AiState { configured: boolean; model: string }
+interface AiState { configured: boolean; model: string; provider?: string | null }
 interface Suggest {
   finding: Finding; field: Field; original: string;
   loading: boolean; suggestion?: string; warning?: string | null; note?: string; error?: string; model?: string;
@@ -77,6 +78,7 @@ export default function Workspace() {
   const [planState, setPlanState] = useState<{ loading: boolean; error?: string }>({ loading: false });
   const [copied, setCopied] = useState(false);
   const started = useRef(false);
+  const user = useUser();
   const sgRef = useRef<HTMLElement>(null);
   const planRef = useRef<HTMLElement>(null);
   const sgKey = sg ? `${sg.finding.id}:${sg.loading}` : "";
@@ -94,7 +96,10 @@ export default function Workspace() {
     try {
       const { ok, data } = await postJson<ScanResult>("/api/scan", demo ? { demo: true } : { url: target });
       if (!ok) setErr(data.error ?? "Scan request failed.");
-      else setScan(data as ScanResult);
+      else {
+        setScan(data as ScanResult);
+        recordScan(data as ScanResult);
+      }
     } catch {
       setErr("Could not reach the SitePilot server. Is it running?");
     } finally {
@@ -106,7 +111,10 @@ export default function Workspace() {
     if (started.current) return;
     started.current = true;
     fetch("/api/ai/status").then((r) => r.json()).then(setAi).catch(() => setAi({ configured: false, model: "" }));
-    if (new URLSearchParams(window.location.search).get("demo") === "1") setTimeout(() => runScan(true), 0);
+    const q = new URLSearchParams(window.location.search);
+    const target = q.get("url");
+    if (q.get("demo") === "1") setTimeout(() => runScan(true), 0);
+    else if (target) setTimeout(() => { setUrl(target); runScan(false, target); }, 0);
   }, [runScan]);
 
   const aiReady = ai?.configured === true;
@@ -176,7 +184,12 @@ export default function Workspace() {
     <div className="workspace">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
         <Link href="/" className="text-lg font-extrabold tracking-tight"><span style={{ color: "var(--brand)" }}>◆</span> SitePilot AI</Link>
-        <span className="text-xs" style={{ color: "var(--d-muted)" }}>{ai ? (aiReady ? `AI ready · ${ai.model}` : "AI not configured") : "…"}</span>
+        <nav className="flex items-center gap-2 text-sm">
+          <span className="hidden text-xs sm:inline" style={{ color: "var(--d-muted)" }}>{ai ? (aiReady ? `AI ready · ${ai.model}` : "AI not configured") : "…"}</span>
+          <Link href="/dashboard" className="btn btn-ghost" style={{ padding: "6px 12px" }}>Dashboard</Link>
+          {!user && <Link href="/login" className="btn btn-primary" style={{ padding: "6px 12px" }}>Sign in</Link>}
+          {user && <span className="rounded-full px-3 py-1" style={{ background: "var(--d-panel2)", border: "1px solid var(--d-line)" }}>{user.name}</span>}
+        </nav>
       </header>
 
       <main className="mx-auto max-w-6xl space-y-5 px-4 pb-16">
@@ -197,7 +210,7 @@ export default function Workspace() {
         {ai && !aiReady && (
           <div className="panel p-4 text-sm" style={{ borderColor: "var(--warn-fg)" }}>
             <strong>AI features are off.</strong> Scans and reports work fully without it. To enable explanations, rewrites and the action plan:
-            create <code className="font-mono">.env.local</code> in the project folder with <code className="font-mono">GEMINI_API_KEY=your_key</code> (free key from Google AI Studio), then restart the server.
+            add <code className="font-mono">DEEPSEEK_API_KEY=your_key</code> (or <code className="font-mono">GEMINI_API_KEY=your_key</code> for Gemma) to <code className="font-mono">.env.local</code> in the project folder, then restart the server.
           </div>
         )}
 
@@ -243,7 +256,7 @@ export default function Workspace() {
               <div className="mt-4 flex flex-wrap gap-2">
                 <button className="btn btn-ghost" onClick={download}>Download JSON report</button>
                 {scan.findings.length > 0 && (
-                  <button className="btn btn-primary" disabled={!aiReady || planState.loading} onClick={doPlan} title={aiReady ? "" : "Add GEMINI_API_KEY to enable"}>
+                  <button className="btn btn-primary" disabled={!aiReady || planState.loading} onClick={doPlan} title={aiReady ? "" : "Add DEEPSEEK_API_KEY or GEMINI_API_KEY to enable"}>
                     {planState.loading ? <><span className="spinner" /> Planning…</> : "Generate action plan"}
                   </button>
                 )}
@@ -302,11 +315,11 @@ export default function Workspace() {
                             {ex?.text && <p className="rounded-lg p-3" style={{ background: "var(--info-bg)" }}><strong>AI explanation (review before use).</strong> {ex.text}</p>}
                             {ex?.error && <p role="alert" style={{ color: "var(--crit-fg)" }}>{ex.error}</p>}
                             <div className="flex flex-wrap gap-2">
-                              <button className="btn btn-ghost" disabled={!aiReady || ex?.loading} onClick={() => doExplain(f)} title={aiReady ? "" : "Add GEMINI_API_KEY to enable"}>
+                              <button className="btn btn-ghost" disabled={!aiReady || ex?.loading} onClick={() => doExplain(f)} title={aiReady ? "" : "Add DEEPSEEK_API_KEY or GEMINI_API_KEY to enable"}>
                                 {ex?.loading ? <><span className="spinner" /> Explaining…</> : "Explain in plain English"}
                               </button>
                               {canRewrite && scan.meta && (
-                                <button className="btn btn-primary" disabled={!aiReady} onClick={() => doSuggest(f)} title={aiReady ? "" : "Add GEMINI_API_KEY to enable"}>Improve with AI</button>
+                                <button className="btn btn-primary" disabled={!aiReady} onClick={() => doSuggest(f)} title={aiReady ? "" : "Add DEEPSEEK_API_KEY or GEMINI_API_KEY to enable"}>Improve with AI</button>
                               )}
                             </div>
                           </div>

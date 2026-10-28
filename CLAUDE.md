@@ -18,7 +18,9 @@ Non-goals: applying changes to sites, auth, DB, crawling >1 page, ranking predic
 - Never read/print/commit `.env*`. `.claude/settings.json` denies Read on `.env*`. `.gitignore` has `.env*` (allow `.env.example`).
 - Page text sent to AI goes inside `<page_data>` tags, declared untrusted data in the system prompt.
 - AI errors use fixed messages; never include key, headers or response bodies.
-- Stack: Next.js App Router + TS + Tailwind, cheerio, zod, undici, vitest. No UI lib, DB, auth.
+- Stack: Next.js App Router + TS + Tailwind, cheerio, zod, undici, vitest. No UI lib or DB.
+- "Login" is a LOCAL PROFILE only (name in localStorage, `src/lib/store.ts`): no password, no server, not a security boundary. Scan history lives in the same place. Never describe it as authentication.
+- AI providers (`src/lib/ai.ts`): DeepSeek first if `DEEPSEEK_API_KEY` is set (OpenAI-style, `Bearer` header), else/fallback Gemma via `GEMINI_API_KEY`. `AI_PROVIDER=gemma` flips the order. Same prompts, same zod validation, same fixed errors.
 
 ## Files (keep it small)
 `src/lib/types.ts` · `guard.ts` (URL + IP rules) · `fetcher.ts` · `checks.ts` (checks + score) · `ai.ts` (Gemma + prompts + zod)

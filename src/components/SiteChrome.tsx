@@ -19,6 +19,7 @@ export function SiteNav() {
               {l.label}
             </Link>
           ))}
+          <Link href="/dashboard" className="btn btn-light" style={{ padding: "7px 14px" }}>Dashboard</Link>
           <Link href="/app" className="btn btn-primary" style={{ padding: "7px 14px" }}>Open workspace</Link>
         </nav>
       </div>
@@ -32,7 +33,7 @@ export function SiteFooter() {
       <div className="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-8 text-sm sm:flex-row sm:items-center sm:justify-between" style={{ color: "var(--l-muted)" }}>
         <span><strong style={{ color: "var(--l-fg)" }}>SitePilot AI</strong> · Audit like an engineer, explain like a consultant.</span>
         <nav className="flex flex-wrap gap-4">
-          {[{ href: "/app", label: "Workspace" }, ...LINKS].map((l) => (
+          {[{ href: "/app", label: "Workspace" }, { href: "/dashboard", label: "Dashboard" }, { href: "/login", label: "Sign in" }, ...LINKS].map((l) => (
             <Link key={l.href} href={l.href} className="hover:underline">{l.label}</Link>
           ))}
         </nav>

@@ -10,12 +10,16 @@ npm run check        # lint + typecheck + test + build
 ```
 
 ## Enable AI (optional — scans and reports work without it)
-Create `.env.local` in the project root:
+Create `.env.local` in the project root with either or both keys:
 ```
-GEMINI_API_KEY=your_key_from_google_ai_studio
-GEMMA_MODEL=gemma-4-26b-a4b-it   # optional; alt: gemma-4-31b-it
+DEEPSEEK_API_KEY=your_deepseek_key      # used first when set (optional DEEPSEEK_MODEL, default deepseek-chat)
+GEMINI_API_KEY=your_google_ai_key       # Gemma 4 via the Gemini API (optional GEMMA_MODEL, default gemma-4-26b-a4b-it)
+AI_PROVIDER=gemma                       # optional: prefer Gemma over DeepSeek
 ```
-Restart the server. `npm run ai:check` prints only OK/FAIL + a code. The key is never sent to the browser, logged or put in reports. `.env.local` is git-ignored.
+If the first provider fails, the other is tried automatically. Restart the server after editing. `npm run ai:check` prints only OK/FAIL + a code. Keys are never sent to the browser, logged or put in reports. `.env.local` is git-ignored.
+
+## Dashboard and sign-in
+`/login` creates a **local profile** (just a name, kept in this browser). `/dashboard` shows your saved scan history: latest/average/best score, a score trend, category averages and your most frequent issues. This is not an account: there is no password and nothing is sent to a server.
 
 ## Honesty
 Findings come only from the checks in `src/lib/checks.ts`. AI never creates findings. Scores reflect those checks only and do not predict search rankings. The demo is a fictional site audited by the same engine and labelled DEMO.

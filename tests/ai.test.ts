@@ -4,8 +4,8 @@ import { AiError, callGemma, explainFinding, extractJson, rewriteText } from "@/
 const KEY = "FAKE-test-key-123";
 const ok = (text: string) => new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text }] } }] }), { status: 200 });
 
-beforeEach(() => { process.env.GEMINI_API_KEY = KEY; delete process.env.GEMMA_MODEL; });
-afterEach(() => { vi.restoreAllMocks(); delete process.env.GEMINI_API_KEY; });
+beforeEach(() => { process.env.GEMINI_API_KEY = KEY; delete process.env.GEMMA_MODEL; delete process.env.DEEPSEEK_API_KEY; delete process.env.AI_PROVIDER; delete process.env.DEEPSEEK_MODEL; });
+afterEach(() => { vi.restoreAllMocks(); delete process.env.GEMINI_API_KEY; delete process.env.DEEPSEEK_API_KEY; });
 
 const finding = { id: "h1-missing", category: "content", severity: "critical", title: "Page has no H1", evidence: "No <h1>", why: "", fix: "" } as const;
 
@@ -86,5 +86,54 @@ describe("Gemma thinking parts", () => {
     const body = { candidates: [{ content: { parts: [{ thought: true, text: "reasoning {not json}" }, { text: '{"explanation":"real answer"}' }] } }] };
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify(body), { status: 200 }));
     expect((await explainFinding(finding)).data.explanation).toBe("real answer");
+  });
+});
+
+describe("DeepSeek provider + fallback", () => {
+  const DS = "FAKE-deepseek-key-456";
+  const dsOk = (content: string) => new Response(JSON.stringify({ choices: [{ message: { content } }] }), { status: 200 });
+
+  it("is preferred when its key is set; Bearer header, key not in URL or body", async () => {
+    process.env.DEEPSEEK_API_KEY = DS;
+    const spy = vi.spyOn(globalThis, "fetch").mockResolvedValue(dsOk('{"explanation":"from deepseek"}'));
+    const r = await explainFinding(finding);
+    expect(r.data.explanation).toBe("from deepseek");
+    expect(r.model).toBe("deepseek-chat");
+    const [url, init] = spy.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("https://api.deepseek.com/chat/completions");
+    expect((init.headers as Record<string, string>).authorization).toBe(`Bearer ${DS}`);
+    expect(url).not.toContain(DS);
+    expect(String(init.body)).not.toContain(DS);
+    expect(String(init.body)).toContain("<page_data>");
+  });
+  it("falls back to Gemma when DeepSeek fails", async () => {
+    process.env.DEEPSEEK_API_KEY = DS;
+    const spy = vi.spyOn(globalThis, "fetch").mockImplementation(async (u) =>
+      String(u).includes("deepseek") ? new Response("no", { status: 402 }) : ok('{"explanation":"from gemma"}'));
+    const r = await explainFinding(finding);
+    expect(r.data.explanation).toBe("from gemma");
+    expect(r.model).toBe("gemma-4-26b-a4b-it");
+    expect(spy).toHaveBeenCalledTimes(2);
+  });
+  it("AI_PROVIDER=gemma prefers Gemma", async () => {
+    process.env.DEEPSEEK_API_KEY = DS;
+    process.env.AI_PROVIDER = "gemma";
+    const spy = vi.spyOn(globalThis, "fetch").mockResolvedValue(ok('{"explanation":"g"}'));
+    await explainFinding(finding);
+    expect(String((spy.mock.calls[0] as [string])[0])).toContain("generativelanguage");
+  });
+  it("DeepSeek only (no Gemini key) works; errors never leak the key", async () => {
+    delete process.env.GEMINI_API_KEY;
+    process.env.DEEPSEEK_API_KEY = DS;
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(`bad ${DS}`, { status: 401 }));
+    const e = await explainFinding(finding).catch((x) => x);
+    expect(e.code).toBe("upstream_auth");
+    expect(e.message).not.toContain(DS);
+  });
+  it("no keys at all: missing_key, no network call", async () => {
+    delete process.env.GEMINI_API_KEY;
+    const spy = vi.spyOn(globalThis, "fetch");
+    await expect(explainFinding(finding)).rejects.toMatchObject({ code: "missing_key" });
+    expect(spy).not.toHaveBeenCalled();
   });
 });
