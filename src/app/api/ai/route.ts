@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { actionPlan, AiError, explainFinding, rewriteText } from "@/lib/ai";
 
-export const runtime = "nodejs";
 
 const FindingSchema = z.object({
   id: z.string().max(60),

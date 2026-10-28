@@ -5,7 +5,6 @@ import { computeScores, runChecks } from "@/lib/checks";
 import { safeFetch } from "@/lib/fetcher";
 import type { ScanResult } from "@/lib/types";
 
-export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   let body: { url?: unknown; demo?: unknown } = {};

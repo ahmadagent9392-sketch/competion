@@ -54,15 +54,15 @@ empty, error, partial, failed, missing key. Teal brand, CSS vars, works at 1440 
 acceptedChanges, actionPlan {aiGenerated:true, model}. No secrets.
 
 ## Phases (tick here; commit `P#: summary` after each; then print elapsed/remaining, evidence, next)
-- [~] P1 Setup (5) [files done; npm install of next unfinished]: `create-next-app` (TS, Tailwind, App Router, src/), deps, vitest, `.gitignore`, `.env.example`, git init,
+- [x] P1 Setup (5): `create-next-app` (TS, Tailwind, App Router, src/), deps, vitest, `.gitignore`, `.env.example`, git init,
       script `check` = lint + tsc --noEmit + vitest run + build. Gate: `npm run check` green.
-- [~] P2 Engine (15) [code+79 tests pass; curl gate pending install]: types, guard, fetcher, checks+score, demo fixture, `/api/scan`. Tests: guard (private/v6/mapped/
+- [x] P2 Engine (15) [80 tests pass; demo, real, blocked scans verified live]: types, guard, fetcher, checks+score, demo fixture, `/api/scan`. Tests: guard (private/v6/mapped/
       ports/creds), fetcher (redirect to private, timeout, oversize, non-HTML via local test server), checks, score.
       Gate: tests pass; curl demo → findings; curl http://localhost → failed + reason.
-- [~] P3 AI (10) [code+mocked tests pass; live AI check not run]: `ai.ts`, `/api/ai`, `/api/ai/status`. Mocked-fetch tests: success, fenced JSON, invalid JSON,
+- [x] P3 AI (10) [mocked tests pass; live Gemma call verified]: `ai.ts`, `/api/ai`, `/api/ai/status`. Mocked-fetch tests: success, fenced JSON, invalid JSON,
       401, 429, timeout, missing key makes no fetch, key never in output. Gate: tests pass; live call only if key set
       (else say "live AI check not run").
-- [~] P4 UI (20) [written; not yet compiled]: landing + workspace, all states, suggest panel, action plan, accepted list, JSON download.
+- [x] P4 UI (20) [build passes; pages return 200]: landing + workspace, all states, suggest panel, action plan, accepted list, JSON download.
       Gate: build passes; manual demo scan in browser/curl.
 - [ ] P5 Final (10): `npm run build && npm start`; demo scan, real scan (https://example.com), blocked (http://localhost),
       one AI suggestion; `git grep -n AIza` empty. Report remaining time + extras, then wait.

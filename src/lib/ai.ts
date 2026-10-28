@@ -55,7 +55,7 @@ export async function callGemma(prompt: string, timeoutMs = 25_000): Promise<str
   const body = JSON.stringify({
     systemInstruction: { parts: [{ text: SYSTEM }] },
     contents: [{ role: "user", parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.4, maxOutputTokens: 800 },
+    generationConfig: { temperature: 0.4, maxOutputTokens: 1500, thinkingConfig: { thinkingLevel: "minimal" } },
   });
 
   let lastErr: AiError = new AiError("upstream_error");
@@ -74,8 +74,8 @@ export async function callGemma(prompt: string, timeoutMs = 25_000): Promise<str
         continue; // one retry on 5xx
       }
       if (!res.ok) throw new AiError("upstream_error");
-      const data = (await res.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
-      const text = (data.candidates?.[0]?.content?.parts ?? []).map((p) => p.text ?? "").join("").trim();
+      const data = (await res.json()) as { candidates?: { content?: { parts?: { text?: string; thought?: boolean }[] } }[] };
+      const text = (data.candidates?.[0]?.content?.parts ?? []).filter((p) => !p.thought).map((p) => p.text ?? "").join("").trim();
       if (!text) {
         lastErr = new AiError("malformed_response");
         continue; // one retry on empty

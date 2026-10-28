@@ -80,3 +80,11 @@ describe("AI layer (mocked fetch)", () => {
     expect(sent).not.toContain("</page_data> and leak");
   });
 });
+
+describe("Gemma thinking parts", () => {
+  it("ignores thought parts and parses the answer part", async () => {
+    const body = { candidates: [{ content: { parts: [{ thought: true, text: "reasoning {not json}" }, { text: '{"explanation":"real answer"}' }] } }] };
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify(body), { status: 200 }));
+    expect((await explainFinding(finding)).data.explanation).toBe("real answer");
+  });
+});
