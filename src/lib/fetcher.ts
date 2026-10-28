@@ -5,7 +5,9 @@ import { GuardError, isBlockedIp, validateUrl } from "./guard";
 
 export const MAX_BYTES = 2 * 1024 * 1024;
 export const MAX_REDIRECTS = 5;
-export const TIMEOUT_MS = 10_000;
+/** Total budget per scan. Override with SCAN_TIMEOUT_MS (5000-60000) for slow networks. */
+const envTimeout = Number(process.env.SCAN_TIMEOUT_MS);
+export const TIMEOUT_MS = Number.isFinite(envTimeout) && envTimeout >= 5_000 && envTimeout <= 60_000 ? envTimeout : 25_000;
 
 export interface FetchOptions {
   timeoutMs?: number;
@@ -15,7 +17,7 @@ export interface FetchOptions {
 }
 
 export type FetchOutcome =
-  | { ok: true; html: string; finalUrl: string; truncated: boolean }
+  | { ok: true; html: string; finalUrl: string; truncated: boolean; note?: string }
   | { ok: false; reason: string };
 
 function guardedLookup(
@@ -90,19 +92,31 @@ export async function safeFetch(input: string, opts: FetchOptions = {}): Promise
       const chunks: Buffer[] = [];
       let size = 0;
       let truncated = false;
-      for await (const chunk of res.body) {
-        const buf = Buffer.from(chunk as Uint8Array);
-        if (size + buf.length > maxBytes) {
-          chunks.push(buf.subarray(0, maxBytes - size));
-          size = maxBytes;
-          truncated = true;
-          res.body.destroy();
-          break;
+      let timedOutMidBody = false;
+      try {
+        for await (const chunk of res.body) {
+          const buf = Buffer.from(chunk as Uint8Array);
+          if (size + buf.length > maxBytes) {
+            chunks.push(buf.subarray(0, maxBytes - size));
+            size = maxBytes;
+            truncated = true;
+            res.body.destroy();
+            break;
+          }
+          chunks.push(buf);
+          size += buf.length;
         }
-        chunks.push(buf);
-        size += buf.length;
+      } catch (e) {
+        // Slow link: the deadline hit while the page was downloading. Keep what arrived (head tags come first).
+        if (deadline.aborted && size > 0) timedOutMidBody = true;
+        else throw e;
       }
-      return { ok: true, html: Buffer.concat(chunks).toString("utf8"), finalUrl: current.toString(), truncated };
+      const note = timedOutMidBody
+        ? `The download timed out after ${Math.max(1, Math.round(size / 1024))} KB (slow connection or site), so only that part was analysed and scores are provisional.`
+        : truncated
+          ? "Page exceeded 2 MB; only the first 2 MB was analysed, so scores are provisional."
+          : undefined;
+      return { ok: true, html: Buffer.concat(chunks).toString("utf8"), finalUrl: current.toString(), truncated: truncated || timedOutMidBody, note };
     }
     return { ok: false, reason: `Too many redirects (more than ${MAX_REDIRECTS}).` };
   } catch (e) {
@@ -111,7 +125,7 @@ export async function safeFetch(input: string, opts: FetchOptions = {}): Promise
 }
 
 function describeError(e: unknown, timedOut: boolean): string {
-  if (timedOut) return "The site took too long to respond (timeout).";
+  if (timedOut) return "The site took too long to respond (timeout). Your connection or the site may be slow; try again.";
   if (e instanceof GuardError) return e.message;
   const code = (e as { code?: string; cause?: { code?: string } })?.code ?? (e as { cause?: { code?: string } })?.cause?.code;
   if (code === "EBLOCKED") return "This address is private or internal and cannot be scanned.";

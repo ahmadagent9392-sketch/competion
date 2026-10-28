@@ -31,7 +31,7 @@ Non-goals: applying changes to sites, auth, DB, crawling >1 page, ranking predic
 **Scanner**: http/https only; ports 80/443/8080/8443; no URL credentials. Block localhost, *.local, *.internal,
 single-label hosts, IPv4/IPv6 private, loopback, link-local, CGNAT 100.64/10, multicast, 0.0.0.0/8, IPv4-mapped IPv6.
 DNS checked at connect via undici Agent `connect.lookup` (stops DNS rebinding). Redirects manual, max 5, each hop
-re-validated. Timeout 10 s. Body cap 2 MB → status partial. Non-HTML content-type → failed.
+re-validated. Timeout 25 s (SCAN_TIMEOUT_MS), a mid-download timeout keeps the partial page (status partial). Body cap 2 MB → status partial. Non-HTML content-type → failed.
 Status: complete | partial | failed | demo, always with a reason string shown in UI.
 **Checks** (category/severity): title-missing seo/critical · title-length (30–60) seo/info · meta-desc-missing seo/warning ·
 meta-desc-length (70–160) seo/info · h1-missing content/critical · h1-multiple content/warning ·

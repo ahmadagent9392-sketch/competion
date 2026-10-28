@@ -13,7 +13,7 @@ const SECTIONS = [
       "Blocks private, loopback, link-local, CGNAT, multicast and reserved IPv4/IPv6 ranges, including IPv4-mapped IPv6.",
       "DNS is checked at connect time, so a public name that resolves to a private address is refused.",
       "Redirects are followed manually (max 5) and every hop is re-validated.",
-      "10-second timeout, 2 MB size cap, HTML content types only.",
+      "25-second timeout (configurable), 2 MB size cap, HTML content types only.",
     ],
   },
   {

@@ -5,7 +5,7 @@ import { Card, LIGHT_BG, PageHero, SiteFooter, SiteNav } from "@/components/Site
 export const metadata: Metadata = { title: "How it works — SitePilot AI" };
 
 const STEPS = [
-  { n: "01", t: "Fetch safely", d: "The server fetches one public page with strict limits: http/https only, 10-second timeout, 2 MB cap, up to 5 redirects, each re-checked." },
+  { n: "01", t: "Fetch safely", d: "The server fetches one public page with strict limits: http/https only, 25-second timeout (configurable), 2 MB cap, up to 5 redirects, each re-checked." },
   { n: "02", t: "Run real checks", d: "Ten deterministic checks parse the HTML. Each finding quotes the evidence it found, explains why it matters and how to fix it." },
   { n: "03", t: "Score transparently", d: "Three category scores start at 100 and lose fixed points per failing check. The rules are published on the Checks page." },
   { n: "04", t: "Explain with AI", d: "Gemma 4 explains a finding in plain English, drafts a better title, H1 or meta description, and orders the top 3 fixes." },

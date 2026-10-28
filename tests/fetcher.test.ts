@@ -15,6 +15,7 @@ beforeAll(async () => {
     else if (u === "/slow") { setTimeout(() => res.end("late"), 3000); }
     else if (u === "/loop") { res.statusCode = 302; res.setHeader("location", "/loop"); res.end(); }
     else if (u === "/r") { res.statusCode = 302; res.setHeader("location", "/ok"); res.end(); }
+    else if (u === "/stall") { res.setHeader("content-type", "text/html"); res.write("<html><head><title>Partial page</title></head><body><h1>Hi</h1>"); /* never ends */ }
     else if (u === "/404") { res.statusCode = 404; res.end(); }
     else { res.statusCode = 500; res.end(); }
   });
@@ -63,6 +64,15 @@ describe("safeFetch (local test server, guard off)", () => {
   it("times out", async () => {
     const r = await safeFetch(`${base}/slow`, { ...T, timeoutMs: 300 });
     expect(!r.ok && r.reason).toMatch(/too long|timeout/i);
+  });
+  it("keeps the partial page when the timeout hits mid-download (partial, not failed)", async () => {
+    const r = await safeFetch(`${base}/stall`, { ...T, timeoutMs: 400 });
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.truncated).toBe(true);
+      expect(r.html).toContain("<title>Partial page</title>");
+      expect(r.note).toMatch(/timed out after/);
+    }
   });
   it("reports HTTP errors", async () => {
     const r = await safeFetch(`${base}/404`, T);

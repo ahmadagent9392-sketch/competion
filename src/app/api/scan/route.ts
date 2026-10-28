@@ -49,9 +49,7 @@ export async function POST(req: Request) {
   const result: ScanResult = {
     url: out.finalUrl,
     status: out.truncated ? "partial" : "complete",
-    reason: out.truncated
-      ? "Page exceeded 2 MB; only the first 2 MB was analysed, so scores are provisional."
-      : "Page fetched and analysed in full.",
+    reason: out.truncated ? (out.note ?? "Only part of the page was analysed, so scores are provisional.") : "Page fetched and analysed in full.",
     scannedAt: now,
     scores: computeScores(findings, out.truncated),
     findings,

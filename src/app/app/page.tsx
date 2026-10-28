@@ -217,7 +217,7 @@ export default function Workspace() {
         )}
 
         {loading && (
-          <div className="panel flex items-center gap-3 p-6" role="status"><span className="spinner" /> Fetching and analysing the page… this can take up to 10 seconds.</div>
+          <div className="panel flex items-center gap-3 p-6" role="status"><span className="spinner" /> Fetching and analysing the page… this can take up to 25 seconds on a slow connection.</div>
         )}
 
         {err && <div className="panel p-4" role="alert" style={{ borderColor: "var(--crit-fg)", color: "var(--crit-fg)" }}>{err}</div>}
@@ -250,7 +250,10 @@ export default function Workspace() {
                   </div>
                 </div>
               ) : (
-                <p className="mt-4 text-sm" style={{ color: "var(--crit-fg)" }}>No score: the page could not be analysed. Fix the issue above and scan again.</p>
+                <div className="mt-4">
+                  <p className="text-sm" style={{ color: "var(--crit-fg)" }}>No score: the page could not be analysed. Fix the issue above, or try again if it was a timeout.</p>
+                  <button className="btn btn-primary mt-3" disabled={loading} onClick={() => runScan(false, scan.url)}>Try again</button>
+                </div>
               )}
               <p className="mt-4 text-xs" style={{ color: "var(--d-muted)" }}>
                 How scoring works: each category starts at 100; every failing check subtracts once (critical −20, warning −10, info −3). Scores reflect these checks only; they do not predict search rankings.
