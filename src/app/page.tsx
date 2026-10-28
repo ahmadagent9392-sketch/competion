@@ -8,7 +8,10 @@ const FEATURES = [
 
 export default function Landing() {
   return (
-    <div className="light-page min-h-screen">
+    <div
+      className="light-page min-h-screen"
+      style={{ background: "radial-gradient(1200px 500px at 50% -120px, #ccfbf1 0%, rgba(204,251,241,0) 70%), var(--l-bg)" }}
+    >
       <header className="mx-auto flex max-w-5xl items-center justify-between px-4 py-5">
         <span className="text-lg font-extrabold tracking-tight">
           <span style={{ color: "var(--brand)" }}>◆</span> SitePilot AI
@@ -32,6 +35,19 @@ export default function Landing() {
           <p className="mt-4 text-sm" style={{ color: "var(--l-muted)" }}>
             Scores reflect these checks only. They do not predict search rankings.
           </p>
+        </section>
+
+        <section className="mb-10 grid grid-cols-3 gap-3 text-center">
+          {[
+            ["10", "deterministic checks"],
+            ["3", "score categories"],
+            ["0", "changes made to your site"],
+          ].map(([n, l]) => (
+            <div key={l} className="rounded-2xl px-2 py-5" style={{ background: "var(--l-card)", border: "1px solid var(--l-line)" }}>
+              <div className="text-3xl font-extrabold" style={{ color: "var(--brand)" }}>{n}</div>
+              <div className="mt-1 text-xs sm:text-sm" style={{ color: "var(--l-muted)" }}>{l}</div>
+            </div>
+          ))}
         </section>
 
         <section className="grid gap-4 sm:grid-cols-3">

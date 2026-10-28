@@ -77,6 +77,17 @@ export default function Workspace() {
   const [planState, setPlanState] = useState<{ loading: boolean; error?: string }>({ loading: false });
   const [copied, setCopied] = useState(false);
   const started = useRef(false);
+  const sgRef = useRef<HTMLElement>(null);
+  const planRef = useRef<HTMLElement>(null);
+  const sgKey = sg ? `${sg.finding.id}:${sg.loading}` : "";
+
+  // Bring the side-by-side panel / plan into view when they open, so users never hunt for them.
+  useEffect(() => {
+    if (sgKey) sgRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [sgKey]);
+  useEffect(() => {
+    if (plan) planRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [plan]);
 
   const runScan = useCallback(async (demo: boolean, target?: string) => {
     setLoading(true); setErr(null); setScan(null); setSg(null); setPlan(null); setAccepted([]); setExplain({}); setOpen({});
@@ -241,7 +252,7 @@ export default function Workspace() {
             </section>
 
             {plan && (
-              <section className="panel p-5">
+              <section ref={planRef} className="panel p-5">
                 <h2 className="text-lg font-bold">Top fixes <span className="badge ml-2" style={{ background: "var(--info-bg)", color: "var(--info-fg)" }}>AI suggestion — review before use</span></h2>
                 <ol className="mt-3 space-y-3">
                   {plan.items.map((it, i) => (
@@ -308,7 +319,7 @@ export default function Workspace() {
             })}
 
             {sg && (
-              <section className="panel p-5" aria-live="polite">
+              <section ref={sgRef} className="panel p-5" aria-live="polite" style={{ borderColor: "var(--brand)" }}>
                 <h2 className="text-lg font-bold">Improve {sg.field} <span className="badge ml-2" style={{ background: "var(--info-bg)", color: "var(--info-fg)" }}>AI suggestion — review before use</span></h2>
                 <div className="mt-3 grid gap-3 md:grid-cols-2">
                   <div className="rounded-lg p-3" style={{ background: "var(--d-panel2)" }}>
