@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AiError, callGemma, explainFinding, extractJson, rewriteText } from "@/lib/ai";
 
-const KEY = "AIzaFAKE-test-key-123";
+const KEY = "FAKE-test-key-123";
 const ok = (text: string) => new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text }] } }] }), { status: 200 });
 
 beforeEach(() => { process.env.GEMINI_API_KEY = KEY; delete process.env.GEMMA_MODEL; });
