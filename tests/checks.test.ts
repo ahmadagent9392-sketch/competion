@@ -61,3 +61,13 @@ describe("scoring", () => {
   it("floors at 0", () => expect(computeScores(Array(10).fill(f("content", "critical"))).content).toBe(0));
   it("provisional flag", () => expect(computeScores([], true).provisional).toBe(true));
 });
+
+describe("published rule catalogue", () => {
+  it("matches the real checks one-to-one", async () => {
+    const { CHECK_INFO } = await import("@/lib/checkInfo");
+    const { CHECKS } = await import("@/lib/checks");
+    expect(CHECK_INFO.length).toBe(CHECKS.length);
+    const src = readFileSync("src/lib/checks.ts", "utf8");
+    for (const c of CHECK_INFO) expect(src).toContain(`"${c.id}", "${c.category}", "${c.severity}"`);
+  });
+});
