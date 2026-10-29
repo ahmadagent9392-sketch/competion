@@ -77,7 +77,7 @@ export default function Workspace() {
   const [accepted, setAccepted] = useState<AcceptedChange[]>([]);
   const [plan, setPlan] = useState<{ items: PlanItem[]; model: string } | null>(null);
   const [planState, setPlanState] = useState<{ loading: boolean; error?: string }>({ loading: false });
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<"idle" | "copied" | "failed">("idle");
   const started = useRef(false);
   const user = useUser();
   const sgRef = useRef<HTMLElement>(null);
@@ -153,7 +153,26 @@ export default function Workspace() {
 
   async function copy() {
     if (!sg?.suggestion) return;
-    try { await navigator.clipboard.writeText(sg.suggestion); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch { setCopied(false); }
+    const text = sg.suggestion;
+    let ok = false;
+    try {
+      // Clipboard API, but never wait forever (it can stall without a user gesture or focus).
+      ok = await Promise.race([navigator.clipboard.writeText(text).then(() => true), new Promise<boolean>((r) => setTimeout(() => r(false), 1500))]);
+    } catch {
+      ok = false;
+    }
+    if (!ok) {
+      // Legacy fallback for blocked clipboard permissions.
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.cssText = "position:fixed;opacity:0;top:0;left:0";
+      document.body.appendChild(ta);
+      ta.select();
+      try { ok = document.execCommand("copy"); } catch { ok = false; }
+      ta.remove();
+    }
+    setCopied(ok ? "copied" : "failed");
+    setTimeout(() => setCopied("idle"), 2200);
   }
 
   function download() {
@@ -356,7 +375,7 @@ export default function Workspace() {
                 <p className="mt-3 text-xs" style={{ color: "var(--d-muted)" }}>Accepting only records the change in your report. SitePilot never edits your website.</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button className="btn btn-primary" disabled={!sg.suggestion} onClick={accept}>Accept</button>
-                  <button className="btn btn-ghost" disabled={!sg.suggestion} onClick={copy}>{copied ? "Copied ✓" : "Copy"}</button>
+                  <button className="btn btn-ghost" disabled={!sg.suggestion} onClick={copy}>{copied === "copied" ? "Copied ✓" : copied === "failed" ? "Copy blocked: select the text" : "Copy"}</button>
                   <button className="btn btn-ghost" disabled={sg.loading} onClick={() => doSuggest(sg.finding)}>Retry</button>
                   <button className="btn btn-ghost" onClick={() => setSg(null)}>Cancel</button>
                 </div>

@@ -223,9 +223,22 @@ current: ${clean(original)}
 page title: ${clean(pageTitle ?? "")}
 </page_data>
 Return JSON: {"suggestion": "...", "note": "one short sentence on why this is better"}`;
-  const { data, model } = await run(prompt, RewriteSchema);
+  const inRange = (s: string) => s.length >= min && s.length <= max;
+  let { data, model } = await run(prompt, RewriteSchema);
+  if (!inRange(data.suggestion)) {
+    // One corrective retry: tell the model exactly what was wrong. Keep the first answer if the retry fails or is no better.
+    try {
+      const fix = await run(
+        `${prompt}\nYour previous answer was ${data.suggestion.length} characters, outside the required ${min}-${max}. Write a new ${field} that fits that length exactly.\n<page_data>\nprevious answer: ${clean(data.suggestion)}\n</page_data>`,
+        RewriteSchema,
+      );
+      if (inRange(fix.data.suggestion)) ({ data, model } = fix);
+    } catch {
+      /* keep the first answer; the length warning below still tells the user */
+    }
+  }
   const len = data.suggestion.length;
-  const warning = len < min || len > max ? `Suggestion is ${len} characters; the recommended range is ${min}-${max}.` : null;
+  const warning = !inRange(data.suggestion) ? `Suggestion is ${len} characters; the recommended range is ${min}-${max}.` : null;
   return { data: { ...data, warning }, model };
 }
 

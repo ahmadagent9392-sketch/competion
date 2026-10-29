@@ -73,7 +73,7 @@ body {
 .rise { animation: rise .45s ease both; }
 @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .rise { animation: none; } .panel, .btn { transition: none; } }
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 10px; padding: 9px 16px; font-weight: 600; font-size: 14px; cursor: pointer; transition: filter .15s, background .15s; border: 1px solid transparent; }
+.btn { white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 10px; padding: 9px 16px; font-weight: 600; font-size: 14px; cursor: pointer; transition: filter .15s, background .15s; border: 1px solid transparent; }
 .btn:disabled { opacity: .55; cursor: not-allowed; }
 .btn-primary { background: var(--brand); color: #fff; }
 .btn-primary:hover:not(:disabled) { background: var(--brand-strong); }

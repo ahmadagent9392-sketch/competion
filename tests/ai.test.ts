@@ -65,11 +65,29 @@ describe("AI layer (mocked fetch)", () => {
     await expect(callGemma("x")).rejects.toMatchObject({ code: "upstream_error" });
     expect(spy).toHaveBeenCalledTimes(2);
   });
-  it("rewrite flags out-of-range length instead of truncating", async () => {
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(ok('{"suggestion":"Too short"}'));
+  it("rewrite flags out-of-range length instead of truncating (after one retry)", async () => {
+    const spy = vi.spyOn(globalThis, "fetch").mockImplementation(async () => ok('{"suggestion":"Too short"}'));
     const r = await rewriteText("meta-description", "old", "T");
     expect(r.data.suggestion).toBe("Too short");
     expect(r.data.warning).toMatch(/70-160/);
+    expect(spy).toHaveBeenCalledTimes(2);
+  });
+  it("rewrite retries once when the first answer is out of range and uses the better one", async () => {
+    const good = "Fresh sourdough and pastries baked daily | Brightside";
+    let n = 0;
+    const spy = vi.spyOn(globalThis, "fetch").mockImplementation(async () => ok(n++ === 0 ? '{"suggestion":"Bakery | Bakery"}' : JSON.stringify({ suggestion: good })));
+    const r = await rewriteText("title", "Bakery", "Bakery");
+    expect(r.data.suggestion).toBe(good);
+    expect(r.data.warning).toBeNull();
+    expect(spy).toHaveBeenCalledTimes(2);
+    const retryBody = String((spy.mock.calls[1][1] as RequestInit).body);
+    expect(retryBody).toContain("previous answer");
+    expect(retryBody).not.toContain(KEY);
+  });
+  it("rewrite makes no second call when the first answer is in range", async () => {
+    const spy = vi.spyOn(globalThis, "fetch").mockImplementation(async () => ok('{"suggestion":"Fresh sourdough and pastries baked daily | Brightside"}'));
+    await rewriteText("title", "Bakery", "Bakery");
+    expect(spy).toHaveBeenCalledTimes(1);
   });
   it("page text goes inside <page_data> and key never in prompt", async () => {
     const spy = vi.spyOn(globalThis, "fetch").mockResolvedValue(ok('{"suggestion":"A reasonably long and descriptive title here"}'));

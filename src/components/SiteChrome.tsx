@@ -11,7 +11,7 @@ export function SiteNav() {
   return (
     <header className="sticky top-0 z-10 backdrop-blur" style={{ background: "color-mix(in srgb, var(--l-bg) 82%, transparent)", borderBottom: "1px solid var(--l-line)", color: "var(--l-fg)" }}>
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
-        <Link href="/" className="text-lg font-extrabold tracking-tight">
+        <Link href="/" className="whitespace-nowrap text-lg font-extrabold tracking-tight">
           <span style={{ color: "var(--brand)" }}>◆</span> SitePilot AI
         </Link>
         <nav className="flex items-center gap-1 sm:gap-4">
@@ -21,8 +21,8 @@ export function SiteNav() {
             </Link>
           ))}
           <ThemeToggle surface="light" />
-          <Link href="/dashboard" className="btn btn-light" style={{ padding: "7px 14px" }}>Dashboard</Link>
-          <Link href="/app" className="btn btn-primary" style={{ padding: "7px 14px" }}>Open workspace</Link>
+          <Link href="/dashboard" className="btn btn-light hidden sm:inline-flex" style={{ padding: "7px 14px" }}>Dashboard</Link>
+          <Link href="/app" className="btn btn-primary" style={{ padding: "7px 12px" }}>Open<span className="hidden sm:inline">&nbsp;workspace</span></Link>
         </nav>
       </div>
     </header>
