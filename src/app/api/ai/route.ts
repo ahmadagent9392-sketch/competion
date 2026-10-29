@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { clientKey, rateLimit, RATE_LIMITED_MESSAGE } from "@/lib/rateLimit";
 import { z } from "zod";
 import { actionPlan, AiError, explainFinding, rewriteText } from "@/lib/ai";
 
@@ -25,6 +26,10 @@ const Body = z.discriminatedUnion("action", [
 ]);
 
 export async function POST(req: Request) {
+  const rl = rateLimit(clientKey(req, "ai"));
+  if (!rl.ok) {
+    return NextResponse.json({ error: RATE_LIMITED_MESSAGE, code: "rate_limited" }, { status: 429, headers: { "retry-after": String(rl.retryAfter) } });
+  }
   let json: unknown;
   try {
     json = await req.json();

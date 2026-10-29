@@ -2,6 +2,8 @@
   "name": "sitepilot-ai",
   "version": "0.1.0",
   "private": true,
+  "description": "Website audit and improvement workspace: real deterministic checks, explained and improved by AI.",
+  "engines": { "node": ">=20.19.0" },
   "scripts": {
     "dev": "next dev --webpack",
     "build": "next build --webpack",

@@ -1,12 +1,17 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
+import { clientKey, rateLimit, RATE_LIMITED_MESSAGE } from "@/lib/rateLimit";
 import { computeScores, runChecks } from "@/lib/checks";
 import { safeFetch } from "@/lib/fetcher";
 import type { ScanResult } from "@/lib/types";
 
 
 export async function POST(req: Request) {
+  const rl = rateLimit(clientKey(req, "scan"));
+  if (!rl.ok) {
+    return NextResponse.json({ error: RATE_LIMITED_MESSAGE, code: "rate_limited" }, { status: 429, headers: { "retry-after": String(rl.retryAfter) } });
+  }
   let body: { url?: unknown; demo?: unknown } = {};
   try {
     body = await req.json();
